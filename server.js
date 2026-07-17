@@ -56,27 +56,32 @@ app.post("/shorten", async (req, res) => {
 
 // GET ALL URL ANALYTICS
 app.get("/analytics/all", async (req, res) => {
-
+  try {
     const urls = await Url.find();
-
     res.json(urls);
-
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // TOP 5 MOST CLICKED URLS
 app.get("/analytics/top", async (req, res) => {
-
+  try {
     const topUrls = await Url.find()
         .sort({ clicks: -1 })
         .limit(5);
 
     res.json(topUrls);
-
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // SINGLE URL ANALYTICS
 app.get("/analytics/:code", async (req, res) => {
-
+  try {
     const url = await Url.findOne({
         id: req.params.code
     });
@@ -88,7 +93,10 @@ app.get("/analytics/:code", async (req, res) => {
     }
 
     res.json(url);
-
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // REDIRECT TO ORIGINAL URL
