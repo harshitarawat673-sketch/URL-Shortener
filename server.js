@@ -2,10 +2,11 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const { nanoid } = require("nanoid");
+const cors = require("cors");
 const Url = require("./models/Url");
 const app = express();
 const PORT = 3000;
-
+app.use(cors());
 app.use(express.json());
 
 // HOME
