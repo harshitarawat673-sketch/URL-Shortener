@@ -23,6 +23,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
+  min-height: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -36,6 +37,7 @@ body {
   max-width: 760px;
   margin: 0 auto;
   padding: 40px 24px 64px;
+  min-height: 100vh;
 }
 
 .app-header {
@@ -153,7 +155,10 @@ input:focus-visible {
   gap: 10px;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"] {
   flex: 1;
   font-family: var(--font-mono);
   font-size: 14px;
@@ -164,7 +169,7 @@ input[type="text"] {
   color: var(--ink);
 }
 
-input[type="text"]::placeholder {
+input::placeholder {
   color: #9aa39c;
 }
 
@@ -289,6 +294,7 @@ button {
 .ticket-stats {
   display: flex;
   gap: 28px;
+  flex-wrap: wrap;
 }
 
 .ticket-stats > div {
@@ -397,4 +403,263 @@ button {
   .url-cell {
     max-width: 140px;
   }
+}
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 2rem;
+}
+
+.auth-wrap {
+  max-width: 420px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 4px 24px rgba(79, 70, 229, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-top: 4px solid #4f46e5;
+}
+
+.auth-wrap .eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.auth-wrap .shorten-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.auth-wrap input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.auth-wrap input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.auth-wrap .submit-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-top: 0.25rem;
+  transition: background 0.15s;
+}
+
+.auth-wrap .submit-btn:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.auth-wrap .submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.auth-switch-btn {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.auth-header {
+  width: 100%;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.auth-header .brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.auth-header .brand-mark {
+  margin-bottom: 0;
+}
+.optional-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.optional-row > div {
+  flex: 1;
+}
+
+.eyebrow.small {
+  font-size: 0.65rem;
+}
+
+.qr-wrap {
+  margin: 0.75rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ---------- Dark mode ---------- */
+body:has(.app-shell.dark) {
+  background: #16181d;
+}
+
+.app-shell.dark {
+  background: #16181d;
+  color: #e5e7eb;
+}
+
+.app-shell.dark .tagline,
+.app-shell.dark .hint-text,
+.app-shell.dark .eyebrow,
+.app-shell.dark .stat-label,
+.app-shell.dark .app-footer {
+  color: #9ca3af;
+}
+
+.app-shell.dark .server-pill {
+  background: #1f2229;
+  border-color: #3a3d45;
+  color: #9ca3af;
+}
+
+.app-shell.dark .tabs {
+  border-color: #3a3d45;
+}
+
+.app-shell.dark .tab {
+  color: #9ca3af;
+}
+
+.app-shell.dark .tab:hover {
+  color: #e5e7eb;
+}
+
+.app-shell.dark .tab.active {
+  color: #818cf8;
+  border-bottom-color: #818cf8;
+}
+
+.app-shell.dark input[type="text"],
+.app-shell.dark input[type="number"],
+.app-shell.dark input[type="email"],
+.app-shell.dark input[type="password"] {
+  background: #2a2d35;
+  border-color: #3a3d45;
+  color: #e5e7eb;
+}
+
+.app-shell.dark input::placeholder {
+  color: #6b7280;
+}
+
+.app-shell.dark .empty-state {
+  border-color: #3a3d45;
+  color: #9ca3af;
+}
+
+.app-shell.dark .pane,
+.app-shell.dark .ticket,
+.app-shell.dark .auth-wrap {
+  background: #1f2229;
+  color: #e5e7eb;
+}
+
+.app-shell.dark .ticket {
+  border-color: #3a3d45;
+}
+
+.app-shell.dark .ticket::before {
+  border-color: #3a3d45;
+}
+
+.app-shell.dark .ticket-stub {
+  background: repeating-linear-gradient(
+    135deg,
+    #1f2229,
+    #1f2229 10px,
+    #24272e 10px,
+    #24272e 11px
+  );
+}
+
+.app-shell.dark .origin-url,
+.app-shell.dark .url-cell {
+  color: #a5b4fc;
+}
+
+.app-shell.dark .stat-num-sm,
+.app-shell.dark .short-code {
+  color: #e5e7eb;
+}
+
+.app-shell.dark .copy-btn {
+  background: #4338ca;
+  color: #fff;
+}
+
+.app-shell.dark .copy-btn:hover {
+  background: #4f46e5;
+}
+
+.app-shell.dark .shorten-form button {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.app-shell.dark .shorten-form button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.app-shell.dark .error-text {
+  color: #f87171;
+}
+
+.app-shell.dark .ledger th {
+  color: #9ca3af;
+  border-color: #3a3d45;
+}
+
+.app-shell.dark .ledger td {
+  border-color: #3a3d45;
+}
+
+.app-shell.dark .app-footer {
+  border-color: #3a3d45;
 }

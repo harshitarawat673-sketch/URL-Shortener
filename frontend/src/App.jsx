@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
-import { shortenUrl, getAllUrls, getTopUrls, getUrlByCode, BASE_URL } from "./api";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  shortenUrl,
+  getAllUrls,
+  getTopUrls,
+  getUrlByCode,
+  registerUser,
+  loginUser,
+  logoutUser,
+  getToken,
+  BASE_URL,
+} from "./api";
 
 function formatDate(d) {
   if (!d) return "—";
@@ -11,7 +22,6 @@ function formatDate(d) {
     minute: "2-digit",
   });
 }
-
 function Ticket({ url, onCopy, copied }) {
   return (
     <div className="ticket">
@@ -29,24 +39,31 @@ function Ticket({ url, onCopy, copied }) {
             <span className="stat-num-sm">{formatDate(url.createdAt)}</span>
             <span className="stat-label">issued</span>
           </div>
+          {url.expiresAt && (
+            <div>
+              <span className="stat-num-sm">{formatDate(url.expiresAt)}</span>
+              <span className="stat-label">expires</span>
+            </div>
+          )}
         </div>
       </div>
       <div className="ticket-stub">
         <span className="eyebrow">Code</span>
         <p className="short-code">{url.id}</p>
-        <button
-          className="copy-btn"
-          onClick={() => onCopy(url.shortUrl)}
-        >
+        <div className="qr-wrap">
+          <QRCodeSVG value={url.shortUrl} size={88} bgColor="transparent" />
+        </div>
+        <button className="copy-btn" onClick={() => onCopy(url.shortUrl)}>
           {copied === url.shortUrl ? "Copied" : "Copy link"}
         </button>
       </div>
     </div>
   );
 }
-
 function ShortenPane() {
   const [input, setInput] = useState("");
+  const [customCode, setCustomCode] = useState("");
+  const [expiresInDays, setExpiresInDays] = useState("");
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,7 +75,6 @@ function ShortenPane() {
       setCopied(text);
       setTimeout(() => setCopied(""), 1500);
     } catch {
-      /* clipboard unavailable, ignore */
     }
   };
 
@@ -72,9 +88,15 @@ function ShortenPane() {
     }
     setLoading(true);
     try {
-      const res = await shortenUrl(input.trim());
+      const res = await shortenUrl(
+        input.trim(),
+        customCode.trim() || undefined,
+        expiresInDays || undefined
+      );
       setResult(res.data);
       setInput("");
+      setCustomCode("");
+      setExpiresInDays("");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -100,6 +122,35 @@ function ShortenPane() {
             {loading ? "Cutting…" : "Issue ticket"}
           </button>
         </div>
+
+        <div className="optional-row">
+          <div>
+            <label htmlFor="custom-code" className="eyebrow small">
+              Custom code (optional)
+            </label>
+            <input
+              id="custom-code"
+              type="text"
+              placeholder="my-portfolio"
+              value={customCode}
+              onChange={(e) => setCustomCode(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="expiry-days" className="eyebrow small">
+              Expires in days (optional)
+            </label>
+            <input
+              id="expiry-days"
+              type="number"
+              min="1"
+              placeholder="e.g. 7"
+              value={expiresInDays}
+              onChange={(e) => setExpiresInDays(e.target.value)}
+            />
+          </div>
+        </div>
+
         {error && <p className="error-text">{error}</p>}
       </form>
 
@@ -117,7 +168,6 @@ function ShortenPane() {
     </div>
   );
 }
-
 function ListPane({ mode }) {
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -197,7 +247,6 @@ function LookupPane() {
       setCopied(text);
       setTimeout(() => setCopied(""), 1500);
     } catch {
-      /* ignore */
     }
   };
 
@@ -250,6 +299,84 @@ function LookupPane() {
   );
 }
 
+function AuthPane({ onAuthed }) {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!email.trim() || !password.trim()) {
+      setError("Email and password are required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        await loginUser(email.trim(), password);
+      } else {
+        await registerUser(email.trim(), password);
+      }
+      onAuthed();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="pane auth-wrap">
+      <form className="shorten-form" onSubmit={handleSubmit}>
+        <label htmlFor="email-input" className="eyebrow">
+          {mode === "login" ? "Log in" : "Create an account"}
+        </label>
+        <input
+          id="email-input"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          id="password-input"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit" className="submit-btn" disabled={loading}>
+          {loading
+            ? mode === "login"
+              ? "Logging in…"
+              : "Creating account…"
+            : mode === "login"
+            ? "Log in"
+            : "Register"}
+        </button>
+        {error && <p className="error-text">{error}</p>}
+      </form>
+
+      <p className="auth-switch">
+        {mode === "login" ? "Need an account?" : "Already have an account?"}{" "}
+        <button
+          type="button"
+          className="auth-switch-btn"
+          onClick={() => {
+            setMode(mode === "login" ? "register" : "login");
+            setError("");
+          }}
+        >
+          {mode === "login" ? "Register instead" : "Log in instead"}
+        </button>
+      </p>
+    </div>
+  );
+}
+
 const TABS = [
   { id: "shorten", label: "Shorten" },
   { id: "all", label: "All tickets" },
@@ -259,9 +386,60 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("shorten");
+  const [authed, setAuthed] = useState(!!getToken());
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
+
+  useEffect(() => {
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
+
+  const handleLogout = () => {
+    logoutUser();
+    setAuthed(false);
+  };
+
+  if (!authed) {
+    return (
+      <div className={`app-shell ${darkMode ? "dark" : ""}`}>
+        <header className="app-header auth-header">
+          <div className="brand">
+            <span className="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="28" height="28">
+                <path
+                  d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <div>
+              <h1>Trimly</h1>
+              <p className="tagline">Long links, cut down to a claim ticket.</p>
+            </div>
+          </div>
+        </header>
+        <main className="auth-page">
+          <AuthPane onAuthed={() => setAuthed(true)} />
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${darkMode ? "dark" : ""}`}>
       <header className="app-header">
         <div className="brand">
          <span className="brand-mark" aria-hidden="true">
@@ -288,6 +466,14 @@ export default function App() {
             <h1>Trimly</h1>
             <p className="tagline">Long links, cut down to a claim ticket.</p>
           </div>
+        </div>
+        <div className="header-actions">
+          <button type="button" className="copy-btn" onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? "☀ Light" : "🌙 Dark"}
+          </button>
+          <button type="button" className="copy-btn" onClick={handleLogout}>
+            Log out
+          </button>
         </div>
       </header>
 
